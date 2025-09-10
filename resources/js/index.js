@@ -39,6 +39,7 @@ let num2 = '';
 let operator = ''; 
 let waitingForSecondNumber = false; 
 display.textContent = '0';
+let justCalculated = false;
 
 const decimalBtn = document.querySelector('#dcml');
 
@@ -47,6 +48,7 @@ function resetCalculator() {
   num2 = '';
   operator = '';
   waitingForSecondNumber = false;
+  justCalculated = false
   decimalBtn.disabled = false;
   display.textContent = '0';
 }
@@ -55,6 +57,13 @@ function resetCalculator() {
 
 digitBtns.forEach(button => {
   button.addEventListener('click', () => {
+    if (justCalculated && !operator) {
+            num1 = '';
+            display.textContent = '';
+            justCalculated = false;
+            decimalBtn.disabled = false;
+        }
+
     // Append the digit to the display
     if (button.id === 'dcml') {
         if (!waitingForSecondNumber && !num1.includes('.')) {
@@ -82,70 +91,66 @@ digitBtns.forEach(button => {
 // Operator buttons 
 opBtns.forEach(button => {
   button.addEventListener('click', () => {
-    if (button.id === 'eqBtn') {
-      // Calculate result 
+    const btnId = button.id;
+    const btnText = button.textContent;
+    const opSymbol = btnText === 'x' ? '*' : btnText === '÷' ? '/' : btnText;
+
+    if (btnId === 'eqBtn') {
+      pressEquals();
+      return;
+    }
+
+    if (btnId === 'clBtn') {
+      resetCalculator();
+      return;
+    }
+
+    if (btnId === 'delBtn') {
+      pressBackspace();
+      return;
+    }
+
+    if (justCalculated) {
+      justCalculated = false;
+    }
+
+    if (operator && num2) {
+      // If we already have a full expression, evaluate it before applying the new operator
+      let result = operate(Number(num1), operator, Number(num2));
+
       if (Number(num2) === 0 && operator === '/') {
         display.textContent = 'Welcome to the shadow realm.';
         setTimeout(resetCalculator, 4000);
         return;
       }
 
-      if (num1 && operator && num2) {
-        let result = operate(Number(num1), operator, Number(num2));
-
-        if (result > 9999999999) {
-          display.textContent = "This is why we can't have nice things.";
-          setTimeout(resetCalculator, 4000);
-          return;
-        }
-
-        if (isNaN(result)) {
-          display.textContent = "You broke it. Hope you're proud.";
-          setTimeout(resetCalculator, 4000);
-          return;
-        }
-
-        if (!Number.isInteger(result)) {
-          result = Number(result.toFixed(5));
-        }
-        display.textContent = result;
-        num1 = result.toString();
-        num2 = '';
-        operator = '';
-        waitingForSecondNumber = false;
-        decimalBtn.disabled = false;
+      if (result > 9999999999) {
+        display.textContent = "This is why we can't have nice things.";
+        setTimeout(resetCalculator, 4000);
+        return;
       }
-    } else if (button.id === 'clBtn') {
-      resetCalculator();
-    } else if (button.id === 'delBtn') {
-      if (!waitingForSecondNumber && num1) {
-        num1 = num1.slice(0, -1);
-        display.textContent = num1 || '0';
-      } else if (waitingForSecondNumber && num2) {
-        num2 = num2.slice(0, -1);
-        display.textContent = num2 || '0';
+
+      if (isNaN(result)) {
+        display.textContent = "You broke it. Hope you're proud.";
+        setTimeout(resetCalculator, 4000);
+        return;
       }
-    } else {
-      // Operator clicked 
-      if (!operator) {
-        operator = button.textContent === 'x' ? '*' : button.textContent === '÷' ? '/' : button.textContent;
-        waitingForSecondNumber = true;
-        decimalBtn.disabled = false;
-      } else if (num2) {
-        let result = operate(Number(num1), operator, Number(num2));
-        if (!Number.isInteger(result)) {
-          result = Number(result.toFixed(5));
-        }
-        display.textContent = result;
-        num1 = result.toString();
-        num2 = '';
-        operator = button.textContent === 'x' ? '*' : button.textContent === '÷' ? '/' : button.textContent;
-        waitingForSecondNumber = true;
-        decimalBtn.disabled = false;
+
+      if (!Number.isInteger(result)) {
+        result = Number(result.toFixed(5));
       }
+
+      display.textContent = result;
+      num1 = result.toString();
+      num2 = '';
     }
+
+    operator = opSymbol;
+    waitingForSecondNumber = true;
+    decimalBtn.disabled = false;
   });
 });
+
 
 document.addEventListener('keydown', (e) => {
   const key = e.key;
@@ -169,6 +174,13 @@ document.addEventListener('keydown', (e) => {
 });
 
 function pressDigit(digit) {
+  if (justCalculated && !operator) {
+        num1 = '';
+        display.textContent = '';
+        justCalculated = false;
+        decimalBtn.disabled = false;
+    }
+
   if (!waitingForSecondNumber) {
     num1 += digit;
     display.textContent = num1;
@@ -240,6 +252,7 @@ function pressEquals() {
     num2 = '';
     operator = '';
     waitingForSecondNumber = false;
+    justCalculated = true;
     decimalBtn.disabled = false;
   }
 }
