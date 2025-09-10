@@ -42,6 +42,15 @@ display.textContent = '0';
 
 const decimalBtn = document.querySelector('#dcml');
 
+function resetCalculator() {
+  num1 = '';
+  num2 = '';
+  operator = '';
+  waitingForSecondNumber = false;
+  decimalBtn.disabled = false;
+  display.textContent = '0';
+}
+
 // Digit buttons 
 
 digitBtns.forEach(button => {
@@ -73,76 +82,201 @@ digitBtns.forEach(button => {
 // Operator buttons 
 opBtns.forEach(button => {
   button.addEventListener('click', () => {
-    // You can add your operator logic here
     if (button.id === 'eqBtn') {
-        //Calculate result 
-        if(Number(num2) === 0 && operator === '/') {
-            display.textContent = 'Welcome to the shadow realm.'
-            num1 = '';
-            num2 = '';
-            operator = '';
-            waitingForSecondNumber = false;
-            decimalBtn.disabled = false;
-            return;
-        } else if (button.id === 'delBtn') {
-            if (!waitingForSecondNumber && num1) {
-                num1 = num1.slice(0, -1);
-                display.textContent = num1 || '0';
-            } else if (waitingForSecondNumber && num2) {
-                num2 = num2.slice(0, -1);
-                display.textContent = num2 || '0';
-            }
+      // Calculate result 
+      if (Number(num2) === 0 && operator === '/') {
+        display.textContent = 'Welcome to the shadow realm.';
+        setTimeout(resetCalculator, 4000);
+        return;
+      }
+
+      if (num1 && operator && num2) {
+        let result = operate(Number(num1), operator, Number(num2));
+
+        if (result > 9999999999) {
+          display.textContent = "This is why we can't have nice things.";
+          setTimeout(resetCalculator, 4000);
+          return;
         }
 
-        if (num1 && operator && num2) {
-            let result = operate(Number(num1), operator, Number(num2)); 
-            
-            if (result > 9999999999) {
-                display.textContent = "This is why we can't have nice things.";
-                return;
-            }
-
-            if (isNaN(result)) {
-                display.textContent = "You broke it. Hope you're proud.";
-                return;
-            }
-
-            if (!Number.isInteger(result)) {
-                result = Number(result.toFixed(5));
-            }; 
-            display.textContent = result; 
-            // Reset for next calculation 
-            num1 = result.toString(); 
-            num2 = ''; 
-            operator = ''; 
-            waitingForSecondNumber = false; 
-            decimalBtn.disabled = false;
+        if (isNaN(result)) {
+          display.textContent = "You broke it. Hope you're proud.";
+          setTimeout(resetCalculator, 4000);
+          return;
         }
-    } else if(button.id === 'clBtn') {
-        num1 = '';
+
+        if (!Number.isInteger(result)) {
+          result = Number(result.toFixed(5));
+        }
+        display.textContent = result;
+        num1 = result.toString();
         num2 = '';
         operator = '';
         waitingForSecondNumber = false;
-        display.textContent = '0';
         decimalBtn.disabled = false;
+      }
+    } else if (button.id === 'clBtn') {
+      resetCalculator();
+    } else if (button.id === 'delBtn') {
+      if (!waitingForSecondNumber && num1) {
+        num1 = num1.slice(0, -1);
+        display.textContent = num1 || '0';
+      } else if (waitingForSecondNumber && num2) {
+        num2 = num2.slice(0, -1);
+        display.textContent = num2 || '0';
+      }
     } else {
-        // Operator clicked 
-        if (!operator) {
-            operator = button.textContent === 'X' ? '*' : button.textContent; 
-            waitingForSecondNumber = true; 
-            decimalBtn.disabled = false;
-        } else if(num2) {
-            let result = operate(Number(num1), operator, Number(num2));
-            if (!Number.isInteger(result)) {
-                result = Number(result.toFixed(5));
-            }; 
-            display.textContent = result;
-            num1 = result.toString();
-            num2 = '';
-            operator = button.textContent === 'X' ? '*' : button.textContent;
-            waitingForSecondNumber = true;
-            decimalBtn.disabled = false;
+      // Operator clicked 
+      if (!operator) {
+        operator = button.textContent === 'X' ? '*' : button.textContent;
+        waitingForSecondNumber = true;
+        decimalBtn.disabled = false;
+      } else if (num2) {
+        let result = operate(Number(num1), operator, Number(num2));
+        if (!Number.isInteger(result)) {
+          result = Number(result.toFixed(5));
         }
+        display.textContent = result;
+        num1 = result.toString();
+        num2 = '';
+        operator = button.textContent === 'X' ? '*' : button.textContent;
+        waitingForSecondNumber = true;
+        decimalBtn.disabled = false;
+      }
     }
   });
 });
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key;
+  animateKeyPress(key); 
+
+  // Map keyboard keys to calculator logic
+  if (key >= '0' && key <= '9') {
+    // Simulate digit press
+    pressDigit(key);
+  } else if (key === '.') {
+    pressDecimal();
+  } else if (['+', '-', '*', '/'].includes(key)) {
+    pressOperator(key);
+  } else if (key === 'Enter' || key === '=') {
+    pressEquals();
+  } else if (key.toLowerCase() === 'c' || key === 'Escape') {
+    pressClear();
+  } else if (key === 'Backspace') {
+    pressBackspace();
+  }
+});
+
+function pressDigit(digit) {
+  if (!waitingForSecondNumber) {
+    num1 += digit;
+    display.textContent = num1;
+  } else {
+    num2 += digit;
+    display.textContent = num2;
+  }
+}
+
+function pressDecimal() {
+  if (!waitingForSecondNumber && !num1.includes('.')) {
+    num1 += '.';
+    display.textContent = num1;
+    decimalBtn.disabled = true;
+  } else if (waitingForSecondNumber && !num2.includes('.')) {
+    num2 += '.';
+    display.textContent = num2;
+    decimalBtn.disabled = true;
+  }
+}
+
+function pressOperator(op) {
+  op = op === '*' ? '*' : op; 
+  if (!operator) {
+    operator = op;
+    waitingForSecondNumber = true;
+    decimalBtn.disabled = false;
+  } else if (num2) {
+    let result = operate(Number(num1), operator, Number(num2));
+    if (!Number.isInteger(result)) {
+      result = Number(result.toFixed(5));
+    }
+    display.textContent = result;
+    num1 = result.toString();
+    num2 = '';
+    operator = op;
+    waitingForSecondNumber = true;
+    decimalBtn.disabled = false;
+  }
+}
+
+function pressEquals() {
+  if (Number(num2) === 0 && operator === '/') {
+    display.textContent = 'Welcome to the shadow realm.';
+    setTimeout(resetCalculator, 4000);
+    return;
+  }
+
+  if (num1 && operator && num2) {
+    let result = operate(Number(num1), operator, Number(num2));
+
+    if (result > 9999999999) {
+      display.textContent = "This is why we can't have nice things.";
+      setTimeout(resetCalculator, 4000);
+      return;
+    }
+
+    if (isNaN(result)) {
+      display.textContent = "You broke it. Hope you're proud.";
+      setTimeout(resetCalculator, 4000);
+      return;
+    }
+
+    if (!Number.isInteger(result)) {
+      result = Number(result.toFixed(5));
+    }
+    display.textContent = result;
+    num1 = result.toString();
+    num2 = '';
+    operator = '';
+    waitingForSecondNumber = false;
+    decimalBtn.disabled = false;
+  }
+}
+
+function pressClear() {
+  num1 = '';
+  num2 = '';
+  operator = '';
+  waitingForSecondNumber = false;
+  display.textContent = '0';
+  decimalBtn.disabled = false;
+}
+
+function pressBackspace() {
+  if (!waitingForSecondNumber && num1) {
+    num1 = num1.slice(0, -1);
+    display.textContent = num1 || '0';
+  } else if (waitingForSecondNumber && num2) {
+    num2 = num2.slice(0, -1);
+    display.textContent = num2 || '0';
+  }
+}
+
+function animateKeyPress(key) {
+  // Match buttons by key content or symbol
+  const button = [...document.querySelectorAll('button')]
+    .find(btn => btn.textContent === key || 
+      (key === 'Enter' && btn.id === 'eqBtn') ||
+      (key === 'Backspace' && btn.id === 'delBtn') ||
+      (key.toLowerCase() === 'c' && btn.id === 'clBtn') ||
+      (key === '*' && btn.textContent === 'X') ||
+      (key === '/' && btn.id === 'divBtn'));
+
+  if (button) {
+    button.classList.add('pressed');
+    setTimeout(() => {
+      button.classList.remove('pressed');
+    }, 100); 
+  }
+}
