@@ -84,6 +84,14 @@ opBtns.forEach(button => {
             waitingForSecondNumber = false;
             decimalBtn.disabled = false;
             return;
+        } else if (button.id === 'delBtn') {
+            if (!waitingForSecondNumber && num1) {
+                num1 = num1.slice(0, -1);
+                display.textContent = num1 || '0';
+            } else if (waitingForSecondNumber && num2) {
+                num2 = num2.slice(0, -1);
+                display.textContent = num2 || '0';
+            }
         }
 
         if (num1 && operator && num2) {
@@ -116,6 +124,7 @@ opBtns.forEach(button => {
         operator = '';
         waitingForSecondNumber = false;
         display.textContent = '0';
+        decimalBtn.disabled = false;
     } else {
         // Operator clicked 
         if (!operator) {
