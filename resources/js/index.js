@@ -128,7 +128,7 @@ opBtns.forEach(button => {
     } else {
       // Operator clicked 
       if (!operator) {
-        operator = button.textContent === 'X' ? '*' : button.textContent;
+        operator = button.textContent === 'x' ? '*' : button.textContent;
         waitingForSecondNumber = true;
         decimalBtn.disabled = false;
       } else if (num2) {
@@ -139,7 +139,7 @@ opBtns.forEach(button => {
         display.textContent = result;
         num1 = result.toString();
         num2 = '';
-        operator = button.textContent === 'X' ? '*' : button.textContent;
+        operator = button.textContent === 'x' ? '*' : button.textContent;
         waitingForSecondNumber = true;
         decimalBtn.disabled = false;
       }
@@ -270,7 +270,7 @@ function animateKeyPress(key) {
       (key === 'Enter' && btn.id === 'eqBtn') ||
       (key === 'Backspace' && btn.id === 'delBtn') ||
       (key.toLowerCase() === 'c' && btn.id === 'clBtn') ||
-      (key === '*' && btn.textContent === 'X') ||
+      (key === '*' && btn.textContent === 'x') ||
       (key === '/' && btn.id === 'divBtn'));
 
   if (button) {
