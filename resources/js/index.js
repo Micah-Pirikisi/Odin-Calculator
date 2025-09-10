@@ -128,7 +128,7 @@ opBtns.forEach(button => {
     } else {
       // Operator clicked 
       if (!operator) {
-        operator = button.textContent === 'x' ? '*' : button.textContent;
+        operator = button.textContent === 'x' ? '*' : button.textContent === '÷' ? '/' : button.textContent;
         waitingForSecondNumber = true;
         decimalBtn.disabled = false;
       } else if (num2) {
@@ -139,7 +139,7 @@ opBtns.forEach(button => {
         display.textContent = result;
         num1 = result.toString();
         num2 = '';
-        operator = button.textContent === 'x' ? '*' : button.textContent;
+        operator = button.textContent === 'x' ? '*' : button.textContent === '÷' ? '/' : button.textContent;
         waitingForSecondNumber = true;
         decimalBtn.disabled = false;
       }
